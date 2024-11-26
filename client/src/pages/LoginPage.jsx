@@ -1,5 +1,12 @@
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 const LoginPage = () => {
-    const handleSubmit = (e) => {
+    const navigate = useNavigate();
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         // Get form values
@@ -9,41 +16,76 @@ const LoginPage = () => {
 
         // Basic validation
         if (!email) {
-            alert('Please enter your email');
+            toast.error('Please enter your email');
             return;
         }
 
         if (!password) {
-            alert('Please enter your password');
+            toast.error('Please enter your password');
             return;
         }
 
         // Email format validation
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-            alert('Please enter a valid email address');
+            toast.error('Please enter a valid email address');
             return;
         }
 
-        // Password validation - minimum 6 characters
         if (password.length < 6) {
-            alert('Password must be at least 6 characters long');
+            toast.error('Password must be at least 6 characters long');
             return;
         }
 
-        // Form data object
         const formData = {
             email,
-            password,
-            remember
+            password
         };
 
-        // Log form data (temporary)
-        console.log('Form submitted with data:', formData);
+        try {
+            const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/login`, formData);
+            console.log('Login response:', response.data);
+            
+            if (response.data.token) {
+                toast.success('Login successful!');
+                localStorage.setItem('token', response.data.token);
+                // Set expiration time (1 hour from now)
+                localStorage.setItem('expirationTime', (new Date().getTime() + 3600000).toString());
+                // If remember is checked, expiration time will be 24 hours
+                if (remember) {
+                localStorage.setItem('expirationTime', (new Date().getTime() + 86400000).toString());
+                }
+                navigate('/');
+            } else {
+                toast.error(response.data.message || 'Login failed');
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            if (error.response) {
+                toast.error(error.response.data.message || 'Login failed');
+            } else if (error.request) {
+                toast.error('No response from server. Please try again later.');
+            } else {
+                toast.error('An error occurred. Please try again.');
+            }
+        }
     };
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100">
+            <ToastContainer
+                position="top-right"
+                autoClose={5000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="light"
+            />
+            
             <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md border-2 border-transparent hover:border-blue-400 transition duration-300">
                 <h2 className="text-3xl font-bold text-center text-gray-800 mb-8">Welcome Back</h2>
                 <form className="space-y-6" onSubmit={handleSubmit}>
@@ -56,7 +98,6 @@ const LoginPage = () => {
                             id="email"
                             className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
                             placeholder="Enter your email"
-                            required
                         />
                     </div>
                     <div>
@@ -68,7 +109,6 @@ const LoginPage = () => {
                             id="password"
                             className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
                             placeholder="Enter your password"
-                            required
                         />
                     </div>
                     <div className="flex items-center justify-between">

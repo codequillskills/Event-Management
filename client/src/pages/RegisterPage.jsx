@@ -1,111 +1,188 @@
-const RegisterPage = () => {
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        const formData = {
-            name: e.target.name.value,
-            email: e.target.email.value,
-            phone: e.target.phone.value,
-            password: e.target.password.value,
-            confirmPassword: e.target.confirmPassword.value,
-            terms: e.target.terms.checked
-        };
-        console.log('Form submitted with data:', formData);
-    };
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import axios from "axios";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
-    return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100">
-            <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md border-2 border-transparent hover:border-blue-400 transition duration-300">
-                <h2 className="text-3xl font-bold text-center text-gray-800 mb-8">Create Account</h2>
-                <form className="space-y-6" onSubmit={handleSubmit}>
-                    <div>
-                        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                            Full Name
-                        </label>
-                        <input
-                            type="text"
-                            id="name"
-                            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
-                            placeholder="Enter your full name"
-                            required
-                        />
-                    </div>
-                    <div>
-                        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                            Email Address
-                        </label>
-                        <input
-                            type="email"
-                            id="email"
-                            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
-                            placeholder="Enter your email"
-                            required
-                        />
-                    </div>
-                    <div>
-                        <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
-                            Phone Number
-                        </label>
-                        <input
-                            type="tel"
-                            id="phone"
-                            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
-                            placeholder="Enter your phone number"
-                            required
-                        />
-                    </div>
-                    <div>
-                        <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                            Password
-                        </label>
-                        <input
-                            type="password"
-                            id="password"
-                            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
-                            placeholder="Create a password"
-                            required
-                        />
-                    </div>
-                    <div>
-                        <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
-                            Confirm Password
-                        </label>
-                        <input
-                            type="password"
-                            id="confirmPassword"
-                            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
-                            placeholder="Confirm your password"
-                            required
-                        />
-                    </div>
-                    <div className="flex items-center">
-                        <input
-                            type="checkbox"
-                            id="terms"
-                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                            required
-                        />
-                        <label htmlFor="terms" className="ml-2 block text-sm text-gray-700">
-                            I agree to the <a href="#" className="text-blue-600 hover:text-blue-800">Terms and Conditions</a>
-                        </label>
-                    </div>
-                    <button
-                        type="submit"
-                        className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition duration-300 flex items-center justify-center group"
-                    >
-                        <span className="group-hover:tracking-wider transition-all duration-300">Sign Up</span>
-                    </button>
-                </form>
-                <div className="mt-6 text-center">
-                    <p className="text-sm text-gray-600">
-                        Already have an account?{' '}
-                        <a href="/login" className="text-blue-600 hover:text-blue-800 font-medium transition duration-300">
-                            Sign in
-                        </a>
-                    </p>
-                </div>
-            </div>
-        </div>
-    );
-}
+const RegisterPage = () => {
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    phone: "",
+  });
+  const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const toggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword(!showConfirmPassword);
+  };
+
+  const validateForm = () => {
+    if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword || !formData.phone) {
+      setError("All fields are required");
+      return false;
+    }
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match");
+      return false;
+    }
+    if (formData.password.length < 6) {
+      setError("Password must be at least 6 characters long");
+      return false;
+    }
+    return true;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    if (!validateForm()) {
+      return;
+    }
+
+    try {
+      const { name, email, password, phone } = formData;
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/register`, {
+        name,
+        email,
+        password,
+        phone,
+      });
+
+      if (response.status === 201) {
+        console.log("Registration successful");
+        navigate("/login");
+      } else {
+        setError("Registration failed. Please try again.");
+      }
+    } catch (error) {
+      console.error("Registration error:", error);
+      if (error.response) {
+        setError(error.response.data.message || "An error occurred during registration");
+      } else if (error.request) {
+        setError("No response from server. Please try again later.");
+      } else {
+        setError("An error occurred. Please try again.");
+      }
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-white p-6">
+      <motion.div 
+        initial={{ opacity: 0, y: -50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="bg-white p-10 rounded-3xl shadow-2xl w-full max-w-md relative z-10 backdrop-blur-sm bg-opacity-90"
+      >
+        <h2 className="text-4xl font-bold mb-8 text-center text-gray-800">Create Account</h2>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              placeholder="Full Name"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-200"
+              required
+            />
+          </div>
+          <div>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="Email address"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-200"
+              required
+            />
+          </div>
+          <div>
+            <input
+              type="tel"
+              id="phone"
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
+              placeholder="Phone number"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-200"
+              required
+            />
+          </div>
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              id="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="Password"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-200"
+              required
+            />
+            <button
+              type="button"
+              onClick={togglePasswordVisibility}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 focus:outline-none"
+            >
+              {showPassword ? <FaEyeSlash /> : <FaEye />}
+            </button>
+          </div>
+          <div className="relative">
+            <input
+              type={showConfirmPassword ? "text" : "password"}
+              id="confirmPassword"
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              placeholder="Confirm Password"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-200"
+              required
+            />
+            <button
+              type="button"
+              onClick={toggleConfirmPasswordVisibility}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 focus:outline-none"
+            >
+              {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+            </button>
+          </div>
+          {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            type="submit"
+            className="w-full py-3 px-4 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg transition duration-200 text-lg"
+          >
+            Sign Up
+          </motion.button>
+        </form>
+        <p className="mt-6 text-center text-sm text-gray-600">
+          Already have an account?{" "}
+          <Link to="/login" className="font-medium text-purple-600 hover:text-purple-500 transition duration-200">
+            Sign in
+          </Link>
+        </p>
+      </motion.div>
+    </div>
+  );
+};
 
 export default RegisterPage;

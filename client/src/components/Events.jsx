@@ -1,53 +1,48 @@
+import React,{useEffect} from "react";
+import axios from 'axios';
+import { toast } from "react-toastify";
+
 const Events = () => {
     const events = [
-        {
-            id: 1,
-            title: "Summer Music Festival",
-            date: "July 15, 2024",
-            location: "Central Park",
-            description: "Join us for a day of live music performances",
-        },
-        {
-            id: 2,
-            title: "Tech Conference 2024", 
-            date: "August 20, 2024",
-            location: "Convention Center",
-            description: "Latest trends in technology and innovation",
-        },
-        {
-            id: 3,
-            title: "Food & Wine Festival",
-            date: "September 5, 2024",
-            location: "Downtown Square",
-            description: "Taste cuisines from around the world",
-        },
-        {
-            id: 4,
-            title: "Food & Wine Festival",
-            date: "September 5, 2024",
-            location: "Downtown Square", 
-            description: "Taste cuisines from around the world",
-        },
-        {
-            id: 5,
-            title: "Food & Wine Festival",
-            date: "September 5, 2024",
-            location: "Downtown Square",
-            description: "Taste cuisines from around the world",
-        },
-        {
-            id: 6,
-            title: "Food & Wine Festival",
-            date: "September 5, 2024",
-            location: "Downtown Square",
-            description: "Taste cuisines from around the world",
-        },
+        // {
+        //     id: "6745588ef660784fe67ef3d1",
+        //     title: "Summer Music Festival",
+        //     date: "July 15, 2024",
+        //     location: "Central Park",
+        //     description: "Join us for a day of live music performances",
+        // },
     ];
 
-    const handleRSVP = (eventId) => {
-        // Handle RSVP logic here
-        console.log(`RSVP for event ${eventId}`);
+    const handleRSVP = async (eventId) => {    
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                console.error("No token found - user must be logged in");
+                toast.error("You must be logged in to RSVP for events.");
+            }
+            
+            const userId = JSON.parse(atob(token.split('.')[1])).userId;
+            const response = await axios.post('http://localhost:3000/api/eventRSVP/create/', {
+                userId,
+                eventId
+            });
+            if (response === false) {
+                console.error("Failed to RSVP for event");
+                toast.error("Failed to RSVP for event.");
+            } else {
+                toast.success('Successfully RSVP\'d for the event!');
+            }
+            console.log(response.data.message);
+        } catch (error) {
+            console.error("Error sending RSVP:", error);
+            const errorMessage = error.response?.data?.message || 'Failed to RSVP for the event';
+            toast.error(errorMessage);
+        }
     };
+
+    // useEffect(() => {
+    //     // Remove the immediate handleRSVP call as it shouldn't be called on mount
+    // }, []);
 
     return (
         <div className="flex-grow py-10 px-6 bg-gradient-to-b from-gray-50 to-gray-100 h-full">
