@@ -1,16 +1,52 @@
-import React,{useEffect} from "react";
+import React from "react";
 import axios from 'axios';
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
 
 const Events = () => {
     const events = [
-        // {
-        //     id: "6745588ef660784fe67ef3d1",
-        //     title: "Summer Music Festival",
-        //     date: "July 15, 2024",
-        //     location: "Central Park",
-        //     description: "Join us for a day of live music performances",
-        // },
+        {
+            id: "6745588ef660784fe67ef3d1",
+            title: "Summer Music Festival",
+            date: "July 15, 2024",
+            location: "Central Park",
+            description: "Join us for a day of live music performances",
+        },
+        {
+            id: "6745588ef660784fe67ef3d2",
+            title: "Summer Music Festival",
+            date: "July 15, 2024",
+            location: "Central Park",
+            description: "Join us for a day of live music performances",
+        },
+        {
+            id: "6745588ef660784fe67ef3d3",
+            title: "Summer Music Festival",
+            date: "July 15, 2024",
+            location: "Central Park",
+            description: "Join us for a day of live music performances",
+        },
+        {
+            id: "6745588ef660784fe67ef3d4",
+            title: "Summer Music Festival",
+            date: "July 15, 2024",
+            location: "Central Park",
+            description: "Join us for a day of live music performances",
+        },
+        {
+            id: "6745588ef660784fe67ef3d5",
+            title: "Summer Music Festival",
+            date: "July 15, 2024",
+            location: "Central Park",
+            description: "Join us for a day of live music performances",
+        },
+        {
+            id: "6745588ef660784fe67ef3d6",
+            title: "Summer Music Festival",
+            date: "July 15, 2024",
+            location: "Central Park",
+            description: "Join us for a day of live music performances",
+        },
     ];
 
     const handleRSVP = async (eventId) => {    
@@ -19,10 +55,11 @@ const Events = () => {
             if (!token) {
                 console.error("No token found - user must be logged in");
                 toast.error("You must be logged in to RSVP for events.");
+                return;
             }
             
             const userId = JSON.parse(atob(token.split('.')[1])).userId;
-            const response = await axios.post('http://localhost:3000/api/eventRSVP/create/', {
+            const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/eventRSVP/create/`, {
                 userId,
                 eventId
             });
@@ -30,7 +67,7 @@ const Events = () => {
                 console.error("Failed to RSVP for event");
                 toast.error("Failed to RSVP for event.");
             } else {
-                toast.success('Successfully RSVP\'d for the event!');
+                toast.success('Successfully RSVP for the event!');
             }
             console.log(response.data.message);
         } catch (error) {
@@ -40,12 +77,21 @@ const Events = () => {
         }
     };
 
-    // useEffect(() => {
-    //     // Remove the immediate handleRSVP call as it shouldn't be called on mount
-    // }, []);
 
     return (
         <div className="flex-grow py-10 px-6 bg-gradient-to-b from-gray-50 to-gray-100 h-full">
+            <ToastContainer
+                position="top-right"
+                autoClose={5000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="light"
+            />
             <div className="container mx-auto h-full">
                 <h2 className="text-4xl font-bold mb-12 text-center text-gray-800 hover:text-blue-600 transition-colors duration-300">Upcoming Events</h2>
                 {events.length > 0 ? (

@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const rsvpSchema = new mongoose.Schema({
+const eventRSVPSchema = new mongoose.Schema({
     userId: {
         type: mongoose.Schema.Types.ObjectId,
         required: true,
@@ -13,6 +13,6 @@ const rsvpSchema = new mongoose.Schema({
     },
 }, { timestamps: true });
 
-const RSVP = mongoose.model("RSVP", rsvpSchema);
+const EventRSVP = mongoose.model("EventRSVP", eventRSVPSchema);
 
-export default RSVP;
+export default EventRSVP;
