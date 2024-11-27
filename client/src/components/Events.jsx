@@ -5,6 +5,35 @@ import 'react-toastify/dist/ReactToastify.css';
 
 const Events = () => {
     const [events, setEvents] = useState([]);
+    const [userRSVPs, setUserRSVPs] = useState([]);
+    const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
+
+    useEffect(() => {
+        const checkAuth = () => {
+            const token = localStorage.getItem('token');
+            setIsLoggedIn(!!token);
+            if (!token) {
+                setUserRSVPs([]);
+            }
+        };
+
+        // Check initially
+        checkAuth();
+
+        // Listen for custom logout event
+        const handleLogout = () => {
+            setIsLoggedIn(false);
+            setUserRSVPs([]);
+        };
+
+        window.addEventListener('logout', handleLogout);
+        window.addEventListener('storage', checkAuth);
+
+        return () => {
+            window.removeEventListener('logout', handleLogout);
+            window.removeEventListener('storage', checkAuth);
+        };
+    }, []);
 
     useEffect(() => {
         const fetchEvents = async () => {
@@ -17,30 +46,66 @@ const Events = () => {
             }
         };
         
+        const fetchUserRSVPs = async () => {
+            if (!isLoggedIn) {
+                setUserRSVPs([]);
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('token');
+                const userId = JSON.parse(atob(token.split('.')[1])).userId;
+                const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/eventRSVP/user/${userId}`);
+                setUserRSVPs(response.data);
+            } catch (error) {
+                console.error("Error fetching user RSVPs:", error);
+                setUserRSVPs([]);
+            }
+        };
+
         fetchEvents();
-    }, []);
+        fetchUserRSVPs();
+    }, [isLoggedIn]);
+
+    const hasUserRSVPd = (eventId) => {
+        if (!isLoggedIn) return false;
+        return userRSVPs.some(rsvp => rsvp.eventId === eventId.toString());
+    };
 
     const handleRSVP = async (eventId) => {    
         try {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                console.error("No token found - user must be logged in");
+            if (!isLoggedIn) {
                 toast.error("You must be logged in to RSVP for events.");
                 return;
             }
             
+            const token = localStorage.getItem('token');
+            if (!token) {
+                setIsLoggedIn(false);
+                toast.error("You must be logged in to RSVP for events.");
+                return;
+            }
+            
+            if (hasUserRSVPd(eventId)) {
+                toast.info("You have already RSVP'd for this event!");
+                return;
+            }
+            
             const userId = JSON.parse(atob(token.split('.')[1])).userId;
-            const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/eventRSVP/create/`, {
+            const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/eventRSVP/create`, {
                 userId,
                 eventId
             });
-            if (response === false) {
-                console.error("Failed to RSVP for event");
-                toast.error("Failed to RSVP for event.");
+
+            if (response.data.success) {
+                toast.success(response.data.message);
+                setUserRSVPs(prevRSVPs => [...prevRSVPs, { 
+                    eventId: eventId.toString(),
+                    userId 
+                }]);
             } else {
-                toast.success('Successfully RSVP for the event!');
+                toast.error(response.data.message || "Failed to RSVP for event.");
             }
-            console.log(response.data.message);
         } catch (error) {
             console.error("Error sending RSVP:", error);
             const errorMessage = error.response?.data?.message || 'Failed to RSVP for the event';
@@ -48,23 +113,13 @@ const Events = () => {
         }
     };
 
-
     return (
         <div className="flex-grow py-10 px-6 bg-gradient-to-b from-gray-50 to-gray-100 h-full">
-            <ToastContainer
-                position="top-right"
-                autoClose={5000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-                theme="light"
-            />
+            <ToastContainer />
             <div className="container mx-auto h-full">
-                <h2 className="text-4xl font-bold mb-12 text-center text-gray-800 hover:text-blue-600 transition-colors duration-300">Upcoming Events</h2>
+                <h2 className="text-4xl font-bold mb-12 text-center text-gray-800 hover:text-blue-600 transition-colors duration-300">
+                    Upcoming Events
+                </h2>
                 {events.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {events.map(event => (
@@ -93,12 +148,20 @@ const Events = () => {
                                     </div>
                                     <button 
                                         onClick={() => handleRSVP(event._id)}
-                                        className="w-full mt-6 bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition duration-300 flex items-center justify-center group"
+                                        disabled={hasUserRSVPd(event._id)}
+                                        className={`w-full mt-6 py-3 px-6 rounded-lg font-semibold transition duration-300 flex items-center justify-center group
+                                            ${hasUserRSVPd(event._id) 
+                                                ? 'bg-green-600 text-white cursor-not-allowed'
+                                                : 'bg-blue-600 text-white hover:bg-blue-700'}`}
                                     >
-                                        <svg className="w-6 h-6 mr-2 transform group-hover:scale-110 transition-transform duration-300" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                                        <svg className="w-6 h-6 mr-2 transform group-hover:scale-110 transition-transform duration-300" 
+                                             fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
+                                             viewBox="0 0 24 24" stroke="currentColor">
                                             <path d="M5 13l4 4L19 7"></path>
                                         </svg>
-                                        <span className="group-hover:tracking-wider transition-all duration-300">RSVP Now</span>
+                                        <span className="group-hover:tracking-wider transition-all duration-300">
+                                            {hasUserRSVPd(event._id) ? 'RSVP Done' : 'RSVP Now'}
+                                        </span>
                                     </button>
                                 </div>
                             </div>

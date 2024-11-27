@@ -13,6 +13,8 @@ const eventRSVPSchema = new mongoose.Schema({
     },
 }, { timestamps: true });
 
+eventRSVPSchema.index({ userId: 1, eventId: 1 }, { unique: true });
+
 const EventRSVP = mongoose.model("EventRSVP", eventRSVPSchema);
 
 export default EventRSVP;
