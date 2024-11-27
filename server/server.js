@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import connectDB from "./src/utils/db.js";
 import authRoute from "./src/routes/auth.js"
+import eventRoute from "./src/routes/event.js"
 import eventRSVPRoute from "./src/routes/eventRSVP.js"
 
 const app = express();
@@ -26,6 +27,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 app.use('/api/auth', authRoute);
+app.use('/api/event', eventRoute);
 app.use('/api/eventRSVP', eventRSVPRoute);
 
 connectDB();

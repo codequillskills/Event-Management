@@ -1,53 +1,24 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import axios from 'axios';
 import { toast, ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 
 const Events = () => {
-    const events = [
-        {
-            id: "6745588ef660784fe67ef3d1",
-            title: "Summer Music Festival",
-            date: "July 15, 2024",
-            location: "Central Park",
-            description: "Join us for a day of live music performances",
-        },
-        {
-            id: "6745588ef660784fe67ef3d2",
-            title: "Summer Music Festival",
-            date: "July 15, 2024",
-            location: "Central Park",
-            description: "Join us for a day of live music performances",
-        },
-        {
-            id: "6745588ef660784fe67ef3d3",
-            title: "Summer Music Festival",
-            date: "July 15, 2024",
-            location: "Central Park",
-            description: "Join us for a day of live music performances",
-        },
-        {
-            id: "6745588ef660784fe67ef3d4",
-            title: "Summer Music Festival",
-            date: "July 15, 2024",
-            location: "Central Park",
-            description: "Join us for a day of live music performances",
-        },
-        {
-            id: "6745588ef660784fe67ef3d5",
-            title: "Summer Music Festival",
-            date: "July 15, 2024",
-            location: "Central Park",
-            description: "Join us for a day of live music performances",
-        },
-        {
-            id: "6745588ef660784fe67ef3d6",
-            title: "Summer Music Festival",
-            date: "July 15, 2024",
-            location: "Central Park",
-            description: "Join us for a day of live music performances",
-        },
-    ];
+    const [events, setEvents] = useState([]);
+
+    useEffect(() => {
+        const fetchEvents = async () => {
+            try {
+                const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/event`);
+                setEvents(response.data);
+            } catch (error) {
+                console.error("Error fetching events:", error);
+                toast.error("Failed to load events");
+            }
+        };
+        
+        fetchEvents();
+    }, []);
 
     const handleRSVP = async (eventId) => {    
         try {
@@ -97,7 +68,7 @@ const Events = () => {
                 {events.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {events.map(event => (
-                            <div key={event.id} className="bg-white rounded-xl shadow-lg overflow-hidden transform transition duration-300 hover:scale-105 border-2 border-transparent hover:border-blue-400">
+                            <div key={event._id} className="bg-white rounded-xl shadow-lg overflow-hidden transform transition duration-300 hover:scale-105 border-2 border-transparent hover:border-blue-400">
                                 <div className="p-8">
                                     <div className="bg-blue-50 rounded-lg p-4 mb-6">
                                         <h3 className="text-2xl font-semibold text-gray-800 text-center hover:text-blue-600 transition-colors duration-300">{event.title}</h3>
@@ -121,7 +92,7 @@ const Events = () => {
                                         <p className="text-gray-700 text-center leading-relaxed">{event.description}</p>
                                     </div>
                                     <button 
-                                        onClick={() => handleRSVP(event.id)}
+                                        onClick={() => handleRSVP(event._id)}
                                         className="w-full mt-6 bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition duration-300 flex items-center justify-center group"
                                     >
                                         <svg className="w-6 h-6 mr-2 transform group-hover:scale-110 transition-transform duration-300" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">

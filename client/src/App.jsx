@@ -4,6 +4,7 @@ import EventPage from "./pages/EventPage";
 import RegisterPage from './pages/RegisterPage';
 import LoginPage from './pages/LoginPage';
 import ContactPage from './pages/ContactPage';
+import AdminPage from './pages/admin/AdminPage';
 
 const App = () => {
   return(
@@ -13,7 +14,7 @@ const App = () => {
         <Route path='/register' element={<RegisterPage/>} />
         <Route path="/login" element={<LoginPage/>} />
         <Route path="/contact" element={<ContactPage/>} />
-        
+        <Route path="/admin" element={<AdminPage/>} />        
       </Routes>
     </div>
   )
