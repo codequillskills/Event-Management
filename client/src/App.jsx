@@ -5,6 +5,8 @@ import RegisterPage from './pages/RegisterPage';
 import LoginPage from './pages/LoginPage';
 import ContactPage from './pages/ContactPage';
 import AdminPage from './pages/admin/AdminPage';
+import AdminEvents from "./pages/admin/AdminEvents"
+import AdminRegistered from "./pages/admin/AdminRegistered"
 
 const App = () => {
 
@@ -26,7 +28,9 @@ const App = () => {
         <Route path='/register' element={<RegisterPage/>} />
         <Route path="/login" element={<LoginPage/>} />
         <Route path="/contact" element={<ContactPage/>} />
-        <Route path="/admin" element={<AdminPage/>} />        
+        <Route path="/admin" element={<AdminPage/>} />     
+        <Route path="/adminEvent" element={<AdminEvents/>} />     
+        <Route path="/adminRegistered" element={<AdminRegistered/>} />        
       </Routes>
     </div>
   )

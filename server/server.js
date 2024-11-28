@@ -5,6 +5,9 @@ import connectDB from "./src/utils/db.js";
 import authRoute from "./src/routes/auth.js"
 import eventRoute from "./src/routes/event.js"
 import eventRSVPRoute from "./src/routes/eventRSVP.js"
+import crudRoute from "./src/routes/event.js"
+import User from "./src/models/user.js";
+import Event from "./src/models/Event.js";
 
 const app = express();
 dotenv.config();
@@ -35,6 +38,24 @@ connectDB();
 app.get('/', (req, res) => {
     res.send('Hello World');
 });
+
+app.get("/users", async(req,res) => {
+    try {
+        const users = await User.find();
+        res.json(users);
+      } catch (error) {
+        res.status(500).json({ message: 'Error fetching users', error });
+    }
+})
+
+app.get("/adminEvents", async(req,res) => {
+    try {
+        const events = await Event.find()
+        res.json(events);
+      } catch (error) {
+        res.status(500).json({ message: 'Error fetching users', error });
+    }
+})
 
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
